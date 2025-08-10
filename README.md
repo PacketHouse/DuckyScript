@@ -1,2 +1,2 @@
-# rubberducky
-Payloads for the Hak5 Rubber Ducky
+# DuckyScript
+Payloads for Hak5 devices
