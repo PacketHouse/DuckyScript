@@ -11,7 +11,7 @@ Compile these payloads with Hak5's Payload Studio or an alternative DuckyScript 
 ### Dependencies
 
 * Hak5 device (e.g. USB Rubber Ducky)
-* [Payload Studio](https://payloadstudio.hak5.org/pro/) license or third party compiler
+* [Payload Studio Pro](https://payloadstudio.hak5.org/pro/) license or third party compiler
 
 ### Installing
 
