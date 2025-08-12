@@ -1,10 +1,10 @@
 REM_BLOCK DOCUMENTATION
     Title: Hostinfo Generator
-    Author: str3tch (str3tch [\a\t] packet [\d\o\t] house) https://github.com/PacketHouse
+    Author: str3tch @ Vegas 2.0 | dc702 | PHS (https://github.com/PacketHouse)
     Description: This payload generates random hostnames, IPs, and MACs
     Target: Windows, Ubuntu
     Version: 1.0
-    Category: Utility
+    Category: General
 END_REM
 
 EXTENSION PASSIVE_WINDOWS_DETECT
@@ -53,7 +53,7 @@ END_EXTENSION
 
 EXTENSION HOSTINFO_GENERATOR
     REM VERSION 1.0
-    REM AUTHOR: str3tch
+    REM AUTHOR: str3tch @ Vegas 2.0 | dc702 | PHS (https://github.com/PacketHouse)
 
     REM_BLOCK DOCUMENTATION
         Random data generator
@@ -64,12 +64,15 @@ EXTENSION HOSTINFO_GENERATOR
             See end of payload for usage within payload
     END_REM
 
-    REM Tuning options
+    REM CONFIGURATION:
+    REM length of numerical portion of hostname (ABC-D12345 = 5)
     DEFINE #HOST_NUM_LEN 5
-    VAR $IP_FIRST_OCTET = 10
+    REM set to 0 for random first octet, or specify your own (e.g. 10 for 10.x)
+    VAR $IP_FIRST_OCTET = 0
+    REM set one of these to TRUE to add a separator
     VAR $MAC_USE_COLON = FALSE
-    VAR $MAC_USE_DOT = FALSE
     VAR $MAC_USE_HYPHEN = FALSE
+    VAR $MAC_USE_DOT = FALSE
 
     REM Change at your own risk
     DEFINE #VALUE_6 6543
@@ -88,7 +91,7 @@ EXTENSION HOSTINFO_GENERATOR
 
 
     FUNCTION GET_RANDOM_HEX_VALUE()
-        REM Generate a random decimal or hexadecimal value based on $GET_NUM value
+        REM Generate a random decimal or hexadecimal value based on $GET_NUM
         $_RANDOM_MIN = 0
         IF ($GET_NUM == TRUE) THEN
             $_RANDOM_MAX = 9
@@ -101,31 +104,31 @@ EXTENSION HOSTINFO_GENERATOR
 
     REM Print $HEX_VALUE
     FUNCTION PRINT_HEX_VALUE()
-        IF ( $HEX_VALUE == 0 ) THEN
+        IF ($HEX_VALUE == 0) THEN
             STRING 0
-        ELSE IF ( $HEX_VALUE == 1 ) THEN
+        ELSE IF ($HEX_VALUE == 1) THEN
             STRING 1
-        ELSE IF ( $HEX_VALUE == 2 ) THEN
+        ELSE IF ($HEX_VALUE == 2) THEN
             STRING 2
-        ELSE IF ( $HEX_VALUE == 3 ) THEN
+        ELSE IF ($HEX_VALUE == 3) THEN
             STRING 3
-        ELSE IF ( $HEX_VALUE == 4 ) THEN
+        ELSE IF ($HEX_VALUE == 4) THEN
             STRING 4
-        ELSE IF ( $HEX_VALUE == 5 ) THEN
+        ELSE IF ($HEX_VALUE == 5) THEN
             STRING 5
-        ELSE IF ( $HEX_VALUE == 6 ) THEN
+        ELSE IF ($HEX_VALUE == 6) THEN
             STRING 6
-        ELSE IF ( $HEX_VALUE == 7 ) THEN
+        ELSE IF ($HEX_VALUE == 7) THEN
             STRING 7
-        ELSE IF ( $HEX_VALUE == 8 ) THEN
+        ELSE IF ($HEX_VALUE == 8) THEN
             STRING 8
-        ELSE IF ( $HEX_VALUE == 9 ) THEN
+        ELSE IF ($HEX_VALUE == 9) THEN
             STRING 9
-        ELSE IF ( $HEX_VALUE == 10 ) THEN
+        ELSE IF ($HEX_VALUE == 10) THEN
             STRING A
-        ELSE IF ( $HEX_VALUE == 11 ) THEN
+        ELSE IF ($HEX_VALUE == 11) THEN
             STRING B
-        ELSE IF ( $HEX_VALUE == 12 ) THEN
+        ELSE IF ($HEX_VALUE == 12) THEN
             STRING C
         ELSE IF ( $HEX_VALUE == 13 ) THEN
             STRING D
@@ -140,7 +143,6 @@ EXTENSION HOSTINFO_GENERATOR
     FUNCTION PRINT_OCTET_VALUE()
         REM Print 100s position
         IF ($OCTET >= 100) THEN
-            REM re-using PRINT_HEX_VALUE() since it support 0-9
             $HEX_VALUE = ($OCTET / 100)
             PRINT_HEX_VALUE()
 
@@ -162,13 +164,15 @@ EXTENSION HOSTINFO_GENERATOR
 
     REM Generate a random IPv4 address
     FUNCTION PRINT_RANDOM_IP()
-        REM First octet, avoiding possible network and broadcast addresses
-        REM TODO: Do something about other reserved IPs? (e.g. 239., 169., etc.)
-        $_RANDOM_MIN = 1
-        $_RANDOM_MAX = 254
-        $OCTET = $_RANDOM_INT
+        REM Generate the first octet
         IF ($IP_FIRST_OCTET > 0) THEN
             $OCTET = $IP_FIRST_OCTET
+        ELSE
+            REM Avoiding possible network and broadcast addresses
+            REM TODO: Do something about other reserved IPs? (e.g. 239., 169.)
+            $_RANDOM_MIN = 1
+            $_RANDOM_MAX = 254
+            $OCTET = $_RANDOM_INT
         END_IF
         PRINT_OCTET_VALUE()
         STRING .
@@ -211,18 +215,18 @@ EXTENSION HOSTINFO_GENERATOR
 
         VAR $MAC_POS = 0
         $GET_NUM = FALSE
-        WHILE ( $MAC_POS < #MAC_LEN )
-            $MAC_POS = ( $MAC_POS + 1 )
+        WHILE ($MAC_POS < #MAC_LEN)
+            $MAC_POS = ($MAC_POS + 1)
             $HEX_VALUE = GET_RANDOM_HEX_VALUE()
             PRINT_HEX_VALUE()
 
             REM Print separator
-            IF ($MAC_POS != #MAC_LEN) && ($MAC_POS % 2 == 0) THEN
+            IF (($MAC_POS < #MAC_LEN) && (($MAC_POS % 2) == 0)) THEN
                 IF ($MAC_USE_COLON) THEN
                     STRING :
                 ELSE IF ($MAC_USE_HYPHEN) THEN
                     STRING -
-                ELSE IF ($MAC_USE_DOT) && ($MAC_POS % 4 == 0) THEN
+                ELSE IF (($MAC_USE_DOT) && (($MAC_POS % 4) == 0)) THEN
                     STRING .
                 END_IF
             END_IF
@@ -314,28 +318,29 @@ EXTENSION HOSTINFO_GENERATOR
         STRING ,
         PRINT_RANDOM_IP()
         STRING ,
+        $MAC_USE_COLON = TRUE
         PRINT_RANDOM_MAC()
         ENTER
     END_REM
 END_EXTENSION
 
 
-REM Number of fake host entries to generate
-DEFINE #HOST_COUNT 1000
+REM CONFIGURATION:
+REM number of fake host entries to generate
+DEFINE #HOST_COUNT 10
+$MAC_USE_DOT = TRUE
+
+REM Impersonate a Logitech DeLuxe 250 Keyboard
+ATTACKMODE HID VID_046D PID_C312 MAN_Logitech PROD_DeLuxe250 SERIAL_8013509
+DELAY #VALUE_2
 
 REM Launch a text editor
 IF ($_OS == WINDOWS) THEN
-    REM Emulate a Logitech DeLuxe 250 Keyboard
-    ATTACKMODE HID VID_046D PID_C312 MAN_Logitech PROD_DeLuxe250 SERIAL_8013509
-
     REM Open the Run dialog
     GUI r
-    DELAY 500
+    DELAY #VALUE_1
     STRINGLN notepad.exe
 ELSE
-    REM The USB Rubber Ducky will function as a keyboard and flash drive
-    ATTACKMODE STORAGE HID VID_046D PID_C312 MAN_Logitech PROD_DeLuxe250 SERIAL_8013509
-    DELAY #VALUE_2
     REM launch the Text Editor app
     INJECT_MOD WINDOWS
     DELAY #VALUE_1
@@ -356,13 +361,13 @@ STRING MAC Address
 ENTER
 
 VAR $NUM = 0
-$MAC_USE_DOT = TRUE
 WHILE ($NUM < #HOST_COUNT)
     REM CSV entry
     PRINT_RANDOM_HOSTNAME()
     STRING ,
     PRINT_RANDOM_IP()
     STRING ,
+    $MAC_USE_COLON = TRUE
     PRINT_RANDOM_MAC()
     ENTER
 
